@@ -6,6 +6,7 @@ use keri::{
     prefix::{BasicPrefix, Prefix, SelfSigningPrefix},
 };
 use rand::rngs::OsRng;
+use scid::error::Error;
 
 fn generate_key_pair() -> (PublicKey, PrivateKey) {
     let kp = ed25519_dalek::Keypair::generate(&mut OsRng {});
@@ -15,7 +16,7 @@ fn generate_key_pair() -> (PublicKey, PrivateKey) {
     (vk, sk)
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
     // Parse arguments
     let matches = App::new("SCID")
         .version("1.0")
@@ -42,7 +43,7 @@ fn main() {
         )
         .subcommand(
             App::new("verify")
-                .about("Sign data with given private key")
+                .about("Verify signature with given public key")
                 .arg(
                     Arg::new("pubkey")
                         .short('k')
@@ -79,20 +80,30 @@ fn main() {
     }
 
     if let Some(ref matches) = matches.subcommand_matches("sign") {
-        let b64_sk = matches.value_of("privkey").unwrap();
-        let sk = PrivateKey::new(base64::decode_config(b64_sk, URL_SAFE).unwrap());
+        let b64_sk = matches
+            .value_of("privkey")
+            .ok_or(Error::AppError("Missing private key argument".into()))?;
+        let sk = PrivateKey::new(base64::decode_config(b64_sk, URL_SAFE)?);
         if let Some(data) = matches.value_of("data") {
-            let signature_raw = sk.sign_ed(&data.as_bytes()).unwrap();
+            let signature_raw = sk.sign_ed(&data.as_bytes())?;
             let ssi = SelfSigning::Ed25519Sha512.derive(signature_raw);
             println!("{}", ssi.to_str());
         }
     }
 
     if let Some(ref matches) = matches.subcommand_matches("verify") {
-        let pubkey: BasicPrefix = matches.value_of("pubkey").unwrap().parse().unwrap();
-        let signature: SelfSigningPrefix = matches.value_of("signature").unwrap().parse().unwrap();
-        let data = matches.value_of("data").unwrap().as_bytes();
+        let pubkey: BasicPrefix = matches
+            .value_of("pubkey")
+            .ok_or(Error::AppError("Missing public key argument".into()))?
+            .parse()?;
+        let signature: SelfSigningPrefix = matches.value_of("signature").ok_or(Error::AppError("Missing signature argument".into()))?.parse()?;
+        let data = matches
+            .value_of("data")
+            .ok_or(Error::AppError("Missing data argument".into()))?
+            .as_bytes();
 
-        println!("{:?}", pubkey.verify(data, &signature).unwrap())
-    }
+        println!("{:?}", pubkey.verify(data, &signature)?);
+    };
+
+    Ok(())
 }
