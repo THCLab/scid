@@ -1,0 +1,13 @@
+[package]
+name = "scid"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+keri = "0.8.0"
+clap = "3.0.0-beta.4"
+ed25519-dalek = "1.0.1"
+rand = { version = "0.7.3", features = ["std", "getrandom"]}
+base64 = "0.13.0"
