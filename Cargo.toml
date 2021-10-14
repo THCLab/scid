@@ -12,3 +12,4 @@ ed25519-dalek = "1.0.1"
 rand = { version = "0.7.3", features = ["std", "getrandom"]}
 base64 = "0.13.0"
 thiserror = "1.0.29"
+tempfile = "3.1"
