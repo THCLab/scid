@@ -14,7 +14,7 @@ FLAGS:
 
 SUBCOMMANDS:
     help      Print this message or the help of the given subcommand(s)
-    keygen    Generate keypair
+    gen       Generate keypair
     sign      Sign data with given private key
     verify    Verify signature with given public key
 ```
@@ -23,11 +23,11 @@ SUBCOMMANDS:
 
 * generate keypair
 
-	```cargo run -- keygen > keys```
+	```cargo run -- gen -ko keys```
 
-  Returns public key represented by Basic Prefix and private key encoded in base 64.
+  Saves public key represented by Basic Prefix and private key encoded in base 64 in `keys` file.
 
-  Example of keygen output:
+  Example of keys saved in file:
   ```
   DZR795ZUyebNH3QJADM7RUGeIPl7HQfI3Y0zpsvU0z3s
   aopeLqPMn2kml_DYlSMJOgfrx4WoN_zfrdlkTEyI9P0=

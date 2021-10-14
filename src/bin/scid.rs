@@ -1,3 +1,5 @@
+use std::{fs::{self, File}, io::Write};
+
 use base64::URL_SAFE;
 use clap::{App, Arg};
 use keri::{
@@ -20,7 +22,15 @@ fn main() -> Result<(), Error> {
     // Parse arguments
     let matches = App::new("SCID")
         .version("1.0")
-        .subcommand(App::new("keygen").about("Generate keypair"))
+        .subcommand(App::new("gen")
+            .arg(
+                    Arg::new("key-output")
+                        .long("ko")
+                        .takes_value(true)
+                        .value_name("FILE")
+                        .about("Set output file for keys"),
+                )
+            .about("Generate keypair"))
         .subcommand(
             App::new("sign")
                 .about("Sign data with given private key")
@@ -71,12 +81,16 @@ fn main() -> Result<(), Error> {
         )
         .get_matches();
 
-    if let Some(ref _matches) = matches.subcommand_matches("keygen") {
+    if let Some(ref matches) = matches.subcommand_matches("gen") {
+        
         let (pk, sk) = generate_key_pair();
         let bp = Basic::Ed25519.derive(pk);
         let b64_sk = base64::encode_config(sk.key(), URL_SAFE);
+        if let Some(path) = matches.value_of("key-output") {
+            let keys_str = [bp.to_str(), b64_sk].join("\n");
+            fs::write(path, keys_str).expect("Unable to write file")
+        }
         println!("{}", bp.to_str());
-        println!("{}", b64_sk);
     }
 
     if let Some(ref matches) = matches.subcommand_matches("sign") {
